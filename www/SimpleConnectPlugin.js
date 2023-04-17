@@ -14,11 +14,11 @@ class SimpleConnect{
     }
 
     token() {
-        return this.request('GET', "rest/simpleconnect/token");
+        return this.request('GET', this.host+"/rest/simpleconnect/token");
     }
 
     connect() {
-        return this.request('POST', "rest/simpleconnect/connect?_format=json");
+        return this.request('POST', this.host+"/rest/simpleconnect/connect?_format=json");
     }
 
     login(username,password) {
@@ -26,11 +26,11 @@ class SimpleConnect{
             "username": username,
             "password": password
             }
-        return this.request('POST', "rest/simpleconnect/login?_format=json", postData);
+        return this.request('POST', this.host+"/rest/simpleconnect/login?_format=json", postData);
     }
 
     logout() {
-        return this.request('POST', "rest/simpleconnect/logout?_format=json");
+        return this.request('POST', this.host+"/rest/simpleconnect/logout?_format=json");
     }
 
     register(username, password, email) {
@@ -39,7 +39,7 @@ class SimpleConnect{
             username: username,
             password:password
             }
-        return this.request('POST', "rest/simpleconnect/register?_format=json",request);
+        return this.request('POST', this.host+"/rest/simpleconnect/register?_format=json",request);
 
     }
 
@@ -59,12 +59,14 @@ class SimpleConnect{
                         let obj = xmlhttp.responseText;
                         return  resolve(obj);
                             }
-                        else  reject(new SimpleConnectError(xmlhttp.status,"request:"+path));
+                        else  reject(xmlhttp.status+" "+xmlhttp.responseText);
                     };
                 };
                 xmlhttp.send(JSON.stringify(data));
         }).catch(function(err){
-            throw err;
+        console.log(err);
+
+            throw  new SimpleConnectError(err,"request2:"+path);
         });
     }
 
@@ -140,30 +142,41 @@ exports.register = function (arg0, success, error) {
 };
 
 exports.logout = function (arg0, success, error) {
+try{
     sc.logout().then(function(user){
                var obj=JSON.parse(user);
                console.log(obj);
 //               sc.setCSRFToken(obj.token);
-  //             console.log("LOGoutOUT TOKEN:"+obj.token);
                   success(obj);
   //              exec(success, error, 'SimpleConnectPlugin', 'logout', [obj]);
                      console.log("EXEC OK"+obj);
            },function(err){
-            // error(err);
-               console.log(err);
+           console.log(err);
+                console.log("LOGOUT ERR")
+                console.log(err.message);
+                console.log(err.name);
            });
+    }catch(ex){
+    console.log("LOGOUT EXCEPTION")
+    console.log(ex);
+    }
            };
 
 exports.request = function (arg0, success, error) {
          console.log(arg0);
+       try{
          sc.request(arg0.method,arg0.path,arg0.data,arg0.contentType).then(function(req){
-                var obj=JSON.parse(req);
-                success(obj);
-                //exec(success, error, 'SimpleConnectPlugin', 'request', [arg0]);
+          //      var obj=JSON.parse(req);
+                success(req);
+             //   exec(success, error, 'SimpleConnectPlugin', 'request', [arg0]);
 
                 console.log(req);
                 console.log("REQUEST:");
             },function(err){
-                error(err);
+                console.log(err);
             });
+            }catch(ex){
+            console.log(ex);
+                 error("REQUEST EXCEPTION");
+            }
 };
