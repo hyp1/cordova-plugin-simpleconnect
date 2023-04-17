@@ -1,0 +1,14 @@
+{
+  "name": "cordova.plugin.simpleconnect",
+  "version": "1.0.0",
+  "description": "Test",
+  "cordova": {
+    "id": "cordova.plugin.simpleconnect",
+    "platforms": ["android","browser"]
+  },
+  "keywords": [
+    "ecosystem:cordova"
+  ],
+  "author": "Robert Schweng",
+  "license": "Apache2"
+}
