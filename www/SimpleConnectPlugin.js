@@ -44,14 +44,13 @@ class SimpleConnect{
     }
 
     async request(method="GET",path="",data,content_type="application/json",async=true) {
-        let h=this.host;
         let t=this._token;
         return new Promise(function (resolve, reject){
             var xmlhttp = new XMLHttpRequest();
-                console.log(method+' '+h+' '+path+' ('+content_type+')');
+                console.log(method+' '+path+' ('+content_type+')');
                 xmlhttp.withCredentials = true;
                 xmlhttp.crossDomain = true;
-                xmlhttp.open(method, h +'/'+ path,async);
+                xmlhttp.open(method, path,async);
                 xmlhttp.setRequestHeader("Content-Type", content_type);
                 xmlhttp.setRequestHeader("X-CSRF-Token", t);
                 xmlhttp.onreadystatechange = function () {
