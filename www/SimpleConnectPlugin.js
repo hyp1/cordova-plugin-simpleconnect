@@ -122,6 +122,24 @@ exports.login = function (arg0, success, error) {
 
 };
 
+exports.register = function (arg0, success, error) {
+    console.log("SimpleConnectPlugin: Register "+arg0.username+":"+arg0.password+":"+arg0.email);
+             exec(success, error, 'SimpleConnectPlugin', 'register', [arg0]);
+     /*         exec(success, error, 'SimpleConnectPlugin', 'register', [obj]);
+     sc.register(arg0.username,arg0.password,arg0.email).then(function(user){
+            var obj=JSON.parse(user);
+            console.log(obj);
+            sc.setCSRFToken(obj.token);
+            console.log("Register TOKEN:"+obj.token);
+             exec(success, error, 'SimpleConnectPlugin', 'register', [obj]);
+                  console.log("EXEC OK"+obj);
+        },function(err){
+            console.log(err);
+        });
+*/
+
+};
+
 exports.logout = function (arg0, success, error) {
     sc.logout().then(function(user){
                var obj=JSON.parse(user);
