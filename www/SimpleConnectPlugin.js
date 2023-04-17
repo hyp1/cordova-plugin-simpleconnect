@@ -62,7 +62,8 @@ class SimpleConnect{
                         else  reject(xmlhttp.status+" "+xmlhttp.responseText);
                     };
                 };
-                xmlhttp.send(JSON.stringify(data));
+                if(data)xmlhttp.send(JSON.stringify(data));
+                else xmlhttp.send(data);
         }).catch(function(err){
         console.log(err);
 
