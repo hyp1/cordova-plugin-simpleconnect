@@ -1,5 +1,15 @@
 var exec = require('cordova/exec');
 var sc;
+
+
+class SimpleConnectError extends Error{
+    constructor(msg,name){
+    super(msg,name);
+    this.message=msg;
+    this.name=name
+    }
+}//Class SimpleConnectError
+
 class SimpleConnect{
 
     constructor(host,async=true){
@@ -13,6 +23,9 @@ class SimpleConnect{
             this._token=token;
     }
 
+    getCSRFToken() {
+        return this._token;
+    }
     token() {
         return this.request('GET', this.host+"/rest/simpleconnect/token");
     }
@@ -55,31 +68,26 @@ class SimpleConnect{
                 xmlhttp.setRequestHeader("X-CSRF-Token", t);
                 xmlhttp.onreadystatechange = function () {
                 if (xmlhttp.readyState == 4) {
-                    if((xmlhttp.status >= 200&&xmlhttp.status<=300)){
+                    if(xmlhttp.status == 0) reject(new SimpleConnectError(xmlhttp.status," Verbindung!!!"));      
+                    else if((xmlhttp.status >= 200&&xmlhttp.status<=300)){
                         let obj = xmlhttp.responseText;
                         return  resolve(obj);
                             }
-                        else  reject(xmlhttp.status+" "+xmlhttp.responseText);
+                        else  reject(new SimpleConnectError(xmlhttp.status,xmlhttp.responseText));
+            
                     };
-                };
+                 };
+                console.log(xmlhttp.status);
                 if(data)xmlhttp.send(JSON.stringify(data));
                 else xmlhttp.send(data);
+                 
         }).catch(function(err){
-        console.log(err);
-
-            throw  new SimpleConnectError(err,"request2:"+path);
+            throw err;
         });
     }
 
 }//Class SimpleConnect
 
-class SimpleConnectError extends Error{
-    constructor(msg,name){
-    super(msg,name);
-    this.message=msg;
-    this.name=name
-    }
-}//Class SimpleConnectError
 
 
 exports.coolMethod = function (arg0, success, error) {
@@ -90,11 +98,17 @@ exports.init = function (arg0, success, error) {
     sc=new SimpleConnect(arg0);
     sc.token().then(function(token){
         sc.setCSRFToken(token);
+    success(token);
     },function(err){
-        console.log(err);
+      //  error(err);
+      //  console.log(err);
+      //  alert(err);
+throw err
+    }).catch(function(ex){
+        error(ex);
     });
     console.log(sc);
-    exec(success, error, 'SimpleConnectPlugin', 'init', [arg0]);
+  //  exec(success, error, 'SimpleConnectPlugin', 'init', [sc.token]);
 };
 
 exports.connect = function (success, error) {
@@ -109,16 +123,15 @@ exports.connect = function (success, error) {
 };
 
 exports.login = function (arg0, success, error) {
-    console.log(arg0);
      sc.login(arg0.username,arg0.password).then(function(user){
             var obj=JSON.parse(user);
-            console.log(obj);
+//            console.log(obj);
             sc.setCSRFToken(obj.token);
-            console.log("LOGIN TOKEN:"+obj.token);
              exec(success, error, 'SimpleConnectPlugin', 'login', [obj]);
-                  console.log("EXEC OK"+obj);
         },function(err){
-            console.log(err);
+            //console.log(err);
+            error(err)
+            //throw  err;
         });
 
 
@@ -126,8 +139,8 @@ exports.login = function (arg0, success, error) {
 
 exports.register = function (arg0, success, error) {
     console.log("SimpleConnectPlugin: Register "+arg0.username+":"+arg0.password+":"+arg0.email);
-             exec(success, error, 'SimpleConnectPlugin', 'register', [arg0]);
-     /*         exec(success, error, 'SimpleConnectPlugin', 'register', [obj]);
+//             exec(success, error, 'SimpleConnectPlugin', 'register', [arg0]);
+     //         exec(success, error, 'SimpleConnectPlugin', 'register', [obj]);
      sc.register(arg0.username,arg0.password,arg0.email).then(function(user){
             var obj=JSON.parse(user);
             console.log(obj);
@@ -136,32 +149,28 @@ exports.register = function (arg0, success, error) {
              exec(success, error, 'SimpleConnectPlugin', 'register', [obj]);
                   console.log("EXEC OK"+obj);
         },function(err){
-            console.log(err);
+            error(err);
         });
-*/
+
 
 };
 
-exports.logout = function (arg0, success, error) {
-try{
-    sc.logout().then(function(user){
-               var obj=JSON.parse(user);
-               console.log(obj);
-//               sc.setCSRFToken(obj.token);
-                  success(obj);
-  //              exec(success, error, 'SimpleConnectPlugin', 'logout', [obj]);
-                     console.log("EXEC OK"+obj);
-           },function(err){
-           console.log(err);
-                console.log("LOGOUT ERR")
-                console.log(err.message);
-                console.log(err.name);
-           });
-    }catch(ex){
-    console.log("LOGOUT EXCEPTION")
-    console.log(ex);
-    }
-           };
+exports.logout = function (success, error) {
+    
+     sc.logout().then(function(user){
+            var obj=JSON.parse(user);
+            console.log(obj);
+            
+             exec(success, error, 'SimpleConnectPlugin', 'logout', [obj]);
+                  console.log("Logout OK"+obj);
+        },function(err){
+            //console.log(err);
+            error(err)
+            //throw  err;
+        });
+
+
+};
 
 exports.request = function (arg0, success, error) {
          console.log(arg0);
@@ -177,7 +186,7 @@ exports.request = function (arg0, success, error) {
                 console.log(err);
             });
             }catch(ex){
-            console.log(ex);
+            console.log(ex.name);
                  error("REQUEST EXCEPTION");
             }
 };
